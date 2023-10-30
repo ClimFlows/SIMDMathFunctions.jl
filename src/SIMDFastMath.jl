@@ -10,6 +10,7 @@ import SLEEFPirates as SP
 import Base.FastMath as FM
 import VectorizationBase as VB
 import SIMD
+const Vec{T,N} = SIMD.Vec{N,T}
 
 # Since SLEEFPirates works with VB.Vec but not with SIMD.Vec,
 # we convert between SIMD.Vec and VB.Vec.
@@ -47,7 +48,7 @@ end
 
 @inline SIMDVec(v::VB.Vec) = SIMD.Vec(Tuple(v)...)
 @inline SIMDVec(vu::VB.VecUnroll) = SIMD.Vec(Iter(vu)...)
-@inline VBVec(v::SIMD.Vec) = VB.Vec(Iter(v)...)
+@inline VBVec(v::Vec) = VB.Vec(Iter(v)...)
 
 # some operators have a fast version in FastMath, but not all
 # and some operators have a fast version in SP, but not all !
@@ -68,79 +69,75 @@ const unops_FM_SP_slow = filter(unops_SP) do op
     in(n, unops_FM) && !in(n, unops_SP)
 end
 
-let vec = SIMD.Vec{<:Any,<:Union{Float32,Float64}}
-
+for F in (Float32, Float64)
     for op in unops_Base_SP
         @eval begin
-            @inline Base.$op(x::$vec) = SIMDVec(SP.$op(VBVec(x)))
+            @inline Base.$op(x::Vec{$F}) = SIMDVec(SP.$op(VBVec(x)))
         end
     end
     for op in unops_FM_SP
-        @eval @inline FM.$op(x::$vec) = SIMDVec(SP.$op(VBVec(x)))
+        @eval @inline FM.$op(x::Vec{$F}) = SIMDVec(SP.$op(VBVec(x)))
     end
     for op in unops_FM_SP_slow
         op_fast = Symbol(op, :_fast)
-        @eval @inline FM.$op_fast(x::$vec) = SIMDVec(SP.$op(VBVec(x)))
+        @eval @inline FM.$op_fast(x::Vec{$F}) = SIMDVec(SP.$op(VBVec(x)))
     end
 
     # two-argument functions : x^n with n scalar
-    @eval @inline FM.pow_fast(
-        x::SIMD.Vec{<:Any,F},
-        n::F,
-    ) where {F<:Union{Float32,Float64}} = FM.exp_fast(n * FM.log_fast(x))
+    @eval @inline FM.pow_fast(x::Vec{$F}, n::$F) = FM.exp_fast(n * FM.log_fast(x))
 end
 
 for op in union(unops_FM_SP, unops_FM_SP_slow), F in (Float32, Float64), N in (4, 8, 16)
     op_fast = getfield(FM, op)
-    precompile(op_fast, (SIMD.Vec{N,F},))
+    precompile(op_fast, (Vec{F,N},))
 end
 
 # The default implementation of Vec^Int is broken
-@inline Base.literal_pow(::typeof(^), x::SIMD.Vec, ::Val{4}) =
-    let x2 = x * x
+@inline Base.literal_pow(::typeof(^), x::Vec, ::Val{4}) =
+let x2 = x * x
         x2 * x2
     end
-@inline Base.literal_pow(::typeof(^), x::SIMD.Vec, ::Val{5}) =
+@inline Base.literal_pow(::typeof(^), x::Vec, ::Val{5}) =
     let x2 = x * x
         x2 * x2 * x
     end
-@inline Base.literal_pow(::typeof(^), x::SIMD.Vec, ::Val{6}) =
+@inline Base.literal_pow(::typeof(^), x::Vec, ::Val{6}) =
     let x2 = x * x
         x2 * x2 * x2
     end
-@inline Base.literal_pow(::typeof(^), x::SIMD.Vec, ::Val{7}) =
+@inline Base.literal_pow(::typeof(^), x::Vec, ::Val{7}) =
     let x2 = x * x
         x2 * x2 * x2 * x
     end
-@inline Base.literal_pow(::typeof(^), x::SIMD.Vec, ::Val{8}) =
+@inline Base.literal_pow(::typeof(^), x::Vec, ::Val{8}) =
     let x2 = x * x, x4 = x2 * x2
         x4 * x4
     end
-@inline Base.literal_pow(::typeof(^), x::SIMD.Vec, ::Val{9}) =
+@inline Base.literal_pow(::typeof(^), x::Vec, ::Val{9}) =
     let x2 = x * x, x4 = x2 * x2
         x4 * x4 * x
     end
-@inline Base.literal_pow(::typeof(^), x::SIMD.Vec, ::Val{10}) =
+@inline Base.literal_pow(::typeof(^), x::Vec, ::Val{10}) =
     let x2 = x * x, x4 = x2 * x2
         x4 * x4 * x2
     end
-@inline Base.literal_pow(::typeof(^), x::SIMD.Vec, ::Val{11}) =
+@inline Base.literal_pow(::typeof(^), x::Vec, ::Val{11}) =
     let x2 = x * x, x4 = x2 * x2
         x4 * x4 * x2 * x
     end
-@inline Base.literal_pow(::typeof(^), x::SIMD.Vec, ::Val{12}) =
+@inline Base.literal_pow(::typeof(^), x::Vec, ::Val{12}) =
     let x2 = x * x, x4 = x2 * x2
         x4 * x4 * x4
     end
-@inline Base.literal_pow(::typeof(^), x::SIMD.Vec, ::Val{13}) =
+@inline Base.literal_pow(::typeof(^), x::Vec, ::Val{13}) =
     let x2 = x * x, x4 = x2 * x2
         x4 * x4 * x4 * x
     end
-@inline Base.literal_pow(::typeof(^), x::SIMD.Vec, ::Val{14}) =
+@inline Base.literal_pow(::typeof(^), x::Vec, ::Val{14}) =
     let x2 = x * x, x4 = x2 * x2
         x4 * x4 * x4 * x2
     end
-@inline Base.literal_pow(::typeof(^), x::SIMD.Vec, ::Val{15}) =
+@inline Base.literal_pow(::typeof(^), x::Vec, ::Val{15}) =
     let x2 = x * x, x5 = x2 * x2 * x
         x5 * x5 * x5
     end
