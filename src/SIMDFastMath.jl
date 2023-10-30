@@ -69,22 +69,21 @@ const unops_FM_SP_slow = filter(unops_SP) do op
     in(n, unops_FM) && !in(n, unops_SP)
 end
 
-for F in (Float32, Float64)
-    for op in unops_Base_SP
+# op(x::Vec) = vmap(op,x) = ...
+for (mod, unops, fastop) in (
+    (Base, unops_Base_SP, identity),
+    (FM, unops_FM_SP, identity),
+    (FM, unops_FM_SP_slow, sym->Symbol(sym, :_fast)))    
+
+    for op in unops
+        op_fast = fastop(op)
+        op_SP = getfield(SP, op)
         @eval begin
-            @inline Base.$op(x::Vec{$F}) = SIMDVec(SP.$op(VBVec(x)))
+            @inline $mod.$op_fast(x::Vec{Float32}) = vmap($mod.$op_fast, x) 
+            @inline $mod.$op_fast(x::Vec{Float64}) = vmap($mod.$op_fast, x) 
+            @inline vmap(::typeof($mod.$op_fast), x) = SIMDVec($op_SP(VBVec(x))) 
         end
     end
-    for op in unops_FM_SP
-        @eval @inline FM.$op(x::Vec{$F}) = SIMDVec(SP.$op(VBVec(x)))
-    end
-    for op in unops_FM_SP_slow
-        op_fast = Symbol(op, :_fast)
-        @eval @inline FM.$op_fast(x::Vec{$F}) = SIMDVec(SP.$op(VBVec(x)))
-    end
-
-    # two-argument functions : x^n with n scalar
-    @eval @inline FM.pow_fast(x::Vec{$F}, n::$F) = FM.exp_fast(n * FM.log_fast(x))
 end
 
 for op in union(unops_FM_SP, unops_FM_SP_slow), F in (Float32, Float64), N in (4, 8, 16)

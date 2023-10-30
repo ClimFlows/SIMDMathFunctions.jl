@@ -1,5 +1,7 @@
-using SIMDFastMath: SIMD, unops_Base_SP, unops_FM_SP, unops_FM_SP_slow
+using SIMDFastMath: SIMD, vmap, unops_Base_SP, unops_FM_SP, unops_FM_SP_slow
 using Test
+
+@info methods(vmap)
 
 data(F, N, ::Function) = range(F(0.01), F(0.9), length = N)
 data(F, N, ::typeof(acosh)) = range(F(1.1), F(1.9), length = N)
