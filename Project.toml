@@ -3,8 +3,14 @@ uuid = "d22a7203-ad50-4fbc-abc4-d6ac724cca58"
 authors = ["Thomas Dubos <thomas.dubos@lmd.ipsl.fr> and contributors"]
 version = "0.1.0"
 
+[deps]
+SIMD = "fdea26ae-647d-5447-a871-4b548cad5224"
+SLEEFPirates = "476501e8-09a2-5ece-8869-fb82de89a1fa"
+VectorizationBase = "3d5dd08c-fd9d-11e8-17fa-ed2836048c2f"
+
 [compat]
 julia = "1.6"
+SLEEFPirates = "=0.6.39"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
