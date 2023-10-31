@@ -53,7 +53,7 @@ end
 # some operators have a fast version in FastMath, but not all
 # and some operators have a fast version in SP, but not all !
 const not_unops = (:eval, :include, :evalpoly, :hypot, :ldexp, :sincos, :sincos_fast, :pow_fast)
-const broken_unops = (:cospi, :sinpi, :log10_fast, :log2_fast)
+const broken_unops = (:cospi, :sinpi)
 unop(n) = !occursin("#", string(n)) && !in(n, union(not_unops, broken_unops))
 
 const unops_SP = filter(unop, names(SP; all = true))
