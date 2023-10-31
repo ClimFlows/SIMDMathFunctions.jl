@@ -28,6 +28,7 @@ tolerance(::typeof(@fastmath exp10))=2
 tolerance(::typeof(@fastmath log))=2
 tolerance(::typeof(@fastmath tanh))=2
 tolerance(::typeof(@fastmath log10))=2
+tolerance(::typeof(@fastmath asin))=2
 tolerance(::typeof(exp))=2
 tolerance(::typeof(exp10))=2
 
