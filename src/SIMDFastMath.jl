@@ -1,16 +1,49 @@
+"""
+Vectorized mathematical functions
+
+This module exports nothing, its purpose is to specialize
+mathematical functions in Base and Base.FastMath for SIMD.Vec arguments
+using vectorized implementations from SLEEFPirates.
+
+See: `supported`, `vmap`, `tolerance`.
+"""
 module SIMDFastMath
-
-# Vectorized mathematical functions
-
-# This module exports nothing, its purpose is to specialize
-# mathematical functions in Base and Base.FastMath for SIMD.Vec arguments
-# using vectorized implementations from SLEEFPirates
 
 import SLEEFPirates as SP
 import Base.FastMath as FM
 import VectorizationBase as VB
 import SIMD
 const Vec{T,N} = SIMD.Vec{N,T}
+
+"""
+    tol = tolerance(fun)
+Let `x::SIMD.Vec{N,T}` and `ref` be obtained by applying 
+`fun` on each element of `x`. Now `fun(x)` may differ
+from `ref` by an amount of `tol(fun)*eps(T)*abs(res)`.
+`tol==1` except for a few functions, for which `tol==2`.
+"""
+tolerance(op) = 1
+tolerance(::typeof(@fastmath exp))=2
+tolerance(::typeof(@fastmath exp10))=2
+tolerance(::typeof(@fastmath log))=2
+tolerance(::typeof(@fastmath tanh))=2
+tolerance(::typeof(@fastmath log10))=2
+tolerance(::typeof(exp))=2
+tolerance(::typeof(exp10))=2
+
+"""
+    y = vmap(fun, x::SIMD.Vec)
+`y` approximates (see [`tolerance`](@ref)) the application of `fun` to each element of `x`. 
+Each method of `vmap` corresponds to an optimized implementation for a specific `fun`.
+Currently these implementations are provided by `SLEEFPirates.jl`.
+"""
+function vmap end
+
+"""
+    funs = supported()
+Returns a vector of supported mathematical functions.
+"""
+supported() = [m.sig.parameters[2].instance for m in methods(SIMDFastMath.vmap)]
 
 # Since SLEEFPirates works with VB.Vec but not with SIMD.Vec,
 # we convert between SIMD.Vec and VB.Vec.
@@ -90,55 +123,5 @@ for op in union(unops_FM_SP, unops_FM_SP_slow), F in (Float32, Float64), N in (4
     op_fast = getfield(FM, op)
     precompile(op_fast, (Vec{F,N},))
 end
-
-# The default implementation of Vec^Int is broken
-@inline Base.literal_pow(::typeof(^), x::Vec, ::Val{4}) =
-let x2 = x * x
-        x2 * x2
-    end
-@inline Base.literal_pow(::typeof(^), x::Vec, ::Val{5}) =
-    let x2 = x * x
-        x2 * x2 * x
-    end
-@inline Base.literal_pow(::typeof(^), x::Vec, ::Val{6}) =
-    let x2 = x * x
-        x2 * x2 * x2
-    end
-@inline Base.literal_pow(::typeof(^), x::Vec, ::Val{7}) =
-    let x2 = x * x
-        x2 * x2 * x2 * x
-    end
-@inline Base.literal_pow(::typeof(^), x::Vec, ::Val{8}) =
-    let x2 = x * x, x4 = x2 * x2
-        x4 * x4
-    end
-@inline Base.literal_pow(::typeof(^), x::Vec, ::Val{9}) =
-    let x2 = x * x, x4 = x2 * x2
-        x4 * x4 * x
-    end
-@inline Base.literal_pow(::typeof(^), x::Vec, ::Val{10}) =
-    let x2 = x * x, x4 = x2 * x2
-        x4 * x4 * x2
-    end
-@inline Base.literal_pow(::typeof(^), x::Vec, ::Val{11}) =
-    let x2 = x * x, x4 = x2 * x2
-        x4 * x4 * x2 * x
-    end
-@inline Base.literal_pow(::typeof(^), x::Vec, ::Val{12}) =
-    let x2 = x * x, x4 = x2 * x2
-        x4 * x4 * x4
-    end
-@inline Base.literal_pow(::typeof(^), x::Vec, ::Val{13}) =
-    let x2 = x * x, x4 = x2 * x2
-        x4 * x4 * x4 * x
-    end
-@inline Base.literal_pow(::typeof(^), x::Vec, ::Val{14}) =
-    let x2 = x * x, x4 = x2 * x2
-        x4 * x4 * x4 * x2
-    end
-@inline Base.literal_pow(::typeof(^), x::Vec, ::Val{15}) =
-    let x2 = x * x, x5 = x2 * x2 * x
-        x5 * x5 * x5
-    end
 
 end
