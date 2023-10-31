@@ -44,7 +44,13 @@ function vmap end
     funs = supported()
 Returns a vector of supported mathematical functions.
 """
-supported() = [m.sig.parameters[2].instance for m in methods(SIMDFastMath.vmap)]
+supported() = [m.sig.parameters[2].instance for m in methods(vmap)]
+
+"""
+    flag = is_supported(fun)
+Returns `true` if there is a specialization of `vmap` for `fun`,  `false` otherwise.
+"""
+is_supported(fun)=false
 
 # Since SLEEFPirates works with VB.Vec but not with SIMD.Vec,
 # we convert between SIMD.Vec and VB.Vec.
@@ -116,13 +122,13 @@ for (mod, unops, fastop) in (
             @inline $mod.$op_fast(x::Vec{Float32}) = vmap($mod.$op_fast, x) 
             @inline $mod.$op_fast(x::Vec{Float64}) = vmap($mod.$op_fast, x) 
             @inline vmap(::typeof($mod.$op_fast), x) = SIMDVec($op_SP(VBVec(x))) 
+            @inline is_supported(::typeof($mod.$op_fast)) = true
         end
     end
 end
 
-for op in union(unops_FM_SP, unops_FM_SP_slow), F in (Float32, Float64), N in (4, 8, 16)
-    op_fast = getfield(FM, op)
-    precompile(op_fast, (Vec{F,N},))
+for op in supported(), F in (Float32, Float64), N in (4, 8, 16)
+    precompile(op, (Vec{F,N},))
 end
 
 end

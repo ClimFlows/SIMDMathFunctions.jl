@@ -3,7 +3,7 @@ using Test
 
 @info "Supported functions"
 for fun in supported()
-    @info string(fun)
+    @info "--- $(string(fun))"
 end
 
 data(F, N, ::Function) = range(F(0.01), F(0.9), length = N)
