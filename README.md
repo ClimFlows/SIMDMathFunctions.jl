@@ -2,14 +2,8 @@
 
 Fast vectorized mathematical functions for SIMD.jl , using SLEEFPirates.jl .
 
-[![Code Coverage](https://codecov.io/gh/dubosipsl/SIMDFastMath/branch/master/graph/badge.svg)](https://codecov.io/gh/eschnett/SIMD.jl)
-
-
-| Julia   | CI |
-| ------- | -- |
-| v1      | [![CI](https://github.com/dubosipsl/SIMDFastMath/actions/workflows/ci.yml/badge.svg)](https://github.com/dubosipsl/SIMDFastMath/actions/workflows/ci.yml) |
-| nightly | [![CI (Julia nightly)](https://github.com/dubosipsl/SIMDFastMath/actions/workflows/ci_julia_nightly.yml/badge.svg)](https://github.com/dubosipsl/SIMDFastMath/actions/workflows/ci_julia_nightly.yml) |
-
+[![CI](https://github.com/dubosipsl/SIMDFastMath/actions/workflows/CI.yml/badge.svg)](https://github.com/dubosipsl/SIMDFastMath/actions/workflows/CI.yml)
+[![Code Coverage](https://codecov.io/gh/dubosipsl/SIMDFastMath/branch/master/graph/badge.svg)](https://codecov.io/gh/dubosipsl/SIMDFastMath) 
 ## Overview
 
 When loaded, this package provides mathematical functions accepting `SIMD.Vec` arguments. Under the hood, optimized implementations provided by `SLEEFPirates.jl` are used. This allows explicitly vectorized code using `SIMD.jl` to benefit from fast vectorized math functions.
