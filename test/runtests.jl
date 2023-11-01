@@ -1,4 +1,4 @@
-using SIMDFastMath: SIMD, vmap, tolerance, supported #unops_Base_SP, unops_FM_SP, unops_FM_SP_slow
+using SIMDFastMath: SIMD, tolerance, supported, is_supported
 using Test
 
 @info "Supported functions"
@@ -11,6 +11,7 @@ data(F, N, ::typeof(acosh)) = range(F(1.1), F(1.9), length = N)
 data(F, N, ::typeof(@fastmath acosh)) = range(F(1.1), F(1.9), length = N)
 
 for fun in supported()
+    @assert is_supported(fun)
     tol = tolerance(fun)
     @testset "$(string(fun))" begin
         for F in (Float32, Float64), N in (4, 8, 16, 32)
