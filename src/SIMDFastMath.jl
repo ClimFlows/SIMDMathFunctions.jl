@@ -90,9 +90,8 @@ Returns `true` if there is a specialization of `vmap` for `fun`,  `false` otherw
 """
 @inline function is_fast(f::F) where {F<:Function} 
     V = SIMD.Vec{4,Float64}
-    methods(vmap, Tuple{F, V})[1].sig.parameters[2]==F && return true
-    methods(vmap, Tuple{F, V, V})[1].sig.parameters[2]==F && return true
-    false
+    any(m.sig.parameters[2]==F for m in methods(vmap, Tuple{F, V})) && return true
+    any(m.sig.parameters[2]==F for m in methods(vmap, Tuple{F, V, V}))
 end
 
 #================ Fast functions from SLEEFPirates =================#
