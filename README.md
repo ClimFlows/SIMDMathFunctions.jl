@@ -5,13 +5,21 @@ Fast vectorized mathematical functions for SIMD.jl , using SLEEFPirates.jl .
 [![CI](https://github.com/dubosipsl/SIMDFastMath/actions/workflows/CI.yml/badge.svg)](https://github.com/dubosipsl/SIMDFastMath/actions/workflows/CI.yml)
 [![Code Coverage](https://codecov.io/gh/dubosipsl/SIMDFastMath/branch/main/graph/badge.svg)](https://codecov.io/gh/dubosipsl/SIMDFastMath) 
 
+
+## Installing
+
+This package is not yet registered. To install it :
+```Julia
+] add https://github.com/dubosipsl/SIMDFastMath
+```
+
 ## Overview
 
-When loaded, this package provides mathematical functions accepting `SIMD.Vec` arguments. Under the hood, optimized implementations provided by `SLEEFPirates.jl` are used. This allows explicitly vectorized code using `SIMD.jl` to benefit from fast vectorized math functions.
+The primary goal of `SIMDFastMath` is to provide efficient methods for mathematical functions with `SIMD.Vec` arguments. Under the hood, optimized implementations provided by `SLEEFPirates.jl` are used. This allows explicitly vectorized code using `SIMD.jl` to benefit from fast vectorized math functions.
 
 ```Julia
 using SIMD: VecRange
-using SIMDFastMath: is_supported
+using SIMDFastMath: is_supported, is_fast, fast_functions
 using BenchmarkTools
 
 function exp!(xs::Vector{T}, ys::Vector{T}) where {T}
@@ -20,7 +28,7 @@ function exp!(xs::Vector{T}, ys::Vector{T}) where {T}
     end
 end
 
-function vexp!(xs::Vector{T}, ys::Vector{T}, ::Val{N}) where {N, T}
+function exp!(xs::Vector{T}, ys::Vector{T}, ::Val{N}) where {N, T}
     @assert length(ys) == length(xs)
     @assert length(xs) % N == 0
     @assert is_supported(@fastmath exp)
@@ -33,19 +41,33 @@ end
 y=randn(Float32, 1024*1024); x=similar(y);
 
 @benchmark exp!($x, $y)
-@benchmark vexp!($x, $y, Val(8))
-@benchmark vexp!($x, $y, Val(16))
-@benchmark vexp!($x, $y, Val(32))
+@benchmark exp!($x, $y, Val(8))
+@benchmark exp!($x, $y, Val(16))
+@benchmark exp!($x, $y, Val(32))
 
-@btime is_supported(sin)
+@btime is_fast(exp)
+unary_funs = fast_functions(1)
+binary_funs = fast_functions(2)
 ```
 
-`SIMDFastMath.is_supported(fun)` is a zero-cost function returning `true` if function `fun` is supported. `SIMDFastMath.supported()` returns a vector of supported functions.
+`is_supported(fun)` is a zero-cost function returning `true` if function `fun` supports `SIMD.Vec` arguments. Similarly `is_fast(fun)` returns `true` if `fun` has an optimized implementation. 
 
+`fast_functions([ninputs])` returns a vector of functions benefitting from a fast implementation, restricted to those accepting `ninputs` input arguments if `ninputs` is provided.
 
-## Installing
+`SIMDFastMath` also provides a helper function `vmap` to vectorize not-yet-supported mathematical functions. For example :
 
-This package is not yet registered. To install it :
 ```Julia
-] add https://github.com/dubosipsl/SIMDFastMath
+using SIMD: Vec
+using SIMDFastMath: vmap
+import SpecialFunctions: erf
+
+erf(x::Vec) = vmap(erf, x)
+erf(x::Vec, y::Vec) = vmap(erf, x, y)
+erf(x::Vec{N,T}, y::T) where {N,T} = vmap(erf, x, y)
+```
+
+The default `vmap` method simply calls `erf` on each element of `x`. There is no performance benefit, but it allows generic code to use `erf`. If `erf_SIMD` is optimized for vector inputs, you can provide a specialized method for `vmap`:
+
+```Julia
+SIMDFastMath.vmap(::typeof(erf), x) = erf_SIMD(x)
 ```
