@@ -50,7 +50,7 @@ unary_funs = fast_functions(1)
 binary_funs = fast_functions(2)
 ```
 
-`is_supported(fun)` is a zero-cost function returning `true` if function `fun` supports `SIMD.Vec` arguments. Similarly `is_fast(fun)` returns `true` if `fun` has an optimized implementation. 
+`is_supported(fun)` returns `true` if function `fun` supports `SIMD.Vec` arguments. Similarly `is_fast(fun)` returns `true` if `fun` has an optimized implementation.
 
 `fast_functions([ninputs])` returns a vector of functions benefitting from a fast implementation, restricted to those accepting `ninputs` input arguments if `ninputs` is provided.
 

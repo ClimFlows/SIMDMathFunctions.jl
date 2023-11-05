@@ -78,12 +78,8 @@ fast_functions(inputs::Int) =
 """
     flag = is_supported(fun)
 Returns `true` if `fun` accepts `SIMD.Vec` arguments.
-
-Note: `is_supported` is @generated and returns a value computed the first time it is called.
-If `fun` is extended to support `SIMD.Vec` arguments **after** the first call to 
-`is_supported(fun)`, the latter will return `false`.        
 """
-@generated function is_supported(::F) where {F<:Function}
+@inline function is_supported(::F) where {F<:Function}
     V = SIMD.Vec{4,Float64}
     hasmethod(F.instance, Tuple{V}) || hasmethod(F.instance, Tuple{V,V})
 end
@@ -91,23 +87,24 @@ end
 """
     flag = is_fast(fun)
 Returns `true` if there is a specialization of `vmap` for `fun`,  `false` otherwise.
-
-Note: `is_fast` is @generated and returns a value computed the first time it is called.
-If `vmap` is specialized for `::typeof(fun)` **after** the first call to `is_fast(fun)`, the latter will return `false`.
 """
-@generated function is_fast(::F) where {F}
-    any(m.sig.parameters[2]==F for m in methods(vmap))
+@inline function is_fast(f::F) where {F<:Function} 
+    V = SIMD.Vec{4,Float64}
+    methods(vmap, Tuple{F, V})[1].sig.parameters[2]==F && return true
+    methods(vmap, Tuple{F, V, V})[1].sig.parameters[2]==F && return true
+    false
 end
-
 
 #================ Fast functions from SLEEFPirates =================#
 
-tolerance(::typeof(@fastmath exp))=2
-tolerance(::typeof(@fastmath exp10))=2
-tolerance(::typeof(@fastmath log))=2
-tolerance(::typeof(@fastmath tanh))=2
-tolerance(::typeof(@fastmath log10))=2
-tolerance(::typeof(@fastmath asin))=2
+@fastmath begin
+    tolerance(::typeof(exp))=2
+    tolerance(::typeof(exp10))=2
+    tolerance(::typeof(log))=2
+    tolerance(::typeof(tanh))=2
+    tolerance(::typeof(log10))=2
+    tolerance(::typeof(asin))=2
+end
 tolerance(::typeof(exp))=2
 tolerance(::typeof(exp10))=2
 
