@@ -2,11 +2,6 @@ using SIMDFastMath:
     SIMD, tolerance, fast_functions, is_supported, is_fast, vmap_unop, vmap_binop
 using Test
 
-@info "Fast functions"
-for fun in sort(map(string, fast_functions()))
-    @info "--- $fun"
-end
-
 data(F, N, ::Function) = range(F(0.01), F(0.9), length = N)
 data(F, N, ::typeof(acosh)) = range(F(1.1), F(1.9), length = N)
 data(F, N, ::typeof(@fastmath acosh)) = range(F(1.1), F(1.9), length = N)
@@ -24,28 +19,31 @@ function validate(res::Tuple, ref, tol)
 end
 relative_error(res, ref) = abs(res - ref) / abs(ref)
 
-for fun in sort(fast_functions(2), by = string) # two-argument functions
-    @assert is_supported(fun)
-    @assert is_fast(fun)
-    tol = tolerance(fun)
-    tol = tolerance(fun)
-    @testset "$(string(fun))" begin
+@testset "Two-argument functions" begin
+    for fun in sort(fast_functions(2), by = string)
+        @assert is_supported(fun)
+        @assert is_fast(fun)
+        @info "--- $(string(fun))"
+        tol = tolerance(fun)
         for F in (Float32, Float64), N in (4, 8, 16, 32)
             x, y = data_binop(F, N, fun)
-            x, y = SIMD.Vec(x...), SIMD.Vec(x...)
-            res, ref = fun(x, y), vmap_binop(fun, x, y)
-            err, fail = validate(res, ref, tol * eps(F))
-            fail && @warn fun arg ref res err
-            @test !fail
+            xv, yv = SIMD.Vec(x...), SIMD.Vec(x...)
+            for (xx, yy) in ((xv, yv), (x[N>>1], yv), (xv, y[N>>1]))
+                res, ref = fun(xx, yy), vmap_binop(fun, xx, yy)
+                err, fail = validate(res, ref, tol * eps(F))
+                fail && @warn fun (xx, yy) ref res err
+                @test !fail
+            end
         end
     end
 end
 
-for fun in sort(fast_functions(1), by = string) # one-argument functions
-    @assert is_supported(fun)
-    @assert is_fast(fun)
-    tol = tolerance(fun)
-    @testset "$(string(fun))" begin
+@testset "One-argument functions" begin
+    for fun in sort(fast_functions(1), by = string)
+        @assert is_supported(fun)
+        @assert is_fast(fun)
+        @info "--- $(string(fun))"
+        tol = tolerance(fun)
         for F in (Float32, Float64), N in (4, 8, 16, 32)
             d = SIMD.Vec(data(F, N, fun)...)
             res, ref = fun(d), vmap_unop(fun, d)

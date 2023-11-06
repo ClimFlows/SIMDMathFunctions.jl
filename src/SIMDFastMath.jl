@@ -103,9 +103,12 @@ end
     tolerance(::typeof(tanh))=2
     tolerance(::typeof(log10))=2
     tolerance(::typeof(asin))=2
+    tolerance(::typeof(^))=2
 end
 tolerance(::typeof(exp))=2
 tolerance(::typeof(exp10))=2
+tolerance(::typeof(^))=2
+tolerance(::typeof(hypot))=2
 
 # Since SLEEFPirates works with VB.Vec but not with SIMD.Vec,
 # we convert between SIMD.Vec and VB.Vec.
@@ -144,6 +147,7 @@ end
 @inline SIMDVec(v::VB.Vec) = SIMD.Vec(Tuple(v)...)
 @inline SIMDVec(vu::VB.VecUnroll) = SIMD.Vec(Iter(vu)...)
 @inline VBVec(v::Vec) = VB.Vec(Iter(v)...)
+@inline VBVec(v::Floats) = v
 
 # some operators have a fast version in FastMath, but not all
 # and some operators have a fast version in SP, but not all !
@@ -164,7 +168,7 @@ const unops_FM_SP_slow = filter(unops_SP) do op
     in(n, unops_FM) && !in(n, unops_SP)
 end
 
-# op(x::Vec) = vmap(op,x) = ...
+# one input, one output
 for (mod, unops, fastop) in (
     (Base, unops_Base_SP, identity),
     (FM, unops_FM_SP, identity),
@@ -181,19 +185,22 @@ for (mod, unops, fastop) in (
     end
 end
 
-# pow (takes two inputs)
-@inline Base.:^(x::Vec{T}, n::T) where {T<:Floats} = vmap(:^, x,n)
-@inline vmap(::typeof(^), x, n) = exp(n*log(x))
-@fastmath begin
-    @inline ^(x::Vec{T}, n::T) where {T<:Floats} = vmap(^, x,n)
-    @inline vmap(::typeof(^), x, n) = exp(n*log(x))
-end
-
-# sincos (returns two outputs)
+# one input, two outputs 
 for (mod, op) in ((Base, :sincos), (FM, :sincos_fast)) 
     @eval begin
         @inline $mod.$op(x::Vec{<:Floats}) = vmap($mod.$op, x)
         @inline vmap(::typeof($mod.$op), x) = map(SIMDVec, SP.$op(VBVec(x)))
+    end
+end
+
+# two inputs, one output
+binops = ((Base,:hypot,SP.hypot), (Base,:^,SP.pow), (FM,:pow_fast, SP.pow_fast))
+for (mod, op_slow, op_fast) in binops
+    @eval begin
+        @inline $mod.$op_slow(x::Vec{T}, y::Vec{T}) where {T<:Floats} = vmap($mod.$op_slow, x,y)
+        @inline $mod.$op_slow(x::T, y::Vec{T}) where {T<:Floats} = vmap($mod.$op_slow, x,y)
+        @inline $mod.$op_slow(x::Vec{T}, y::T) where {T<:Floats} = vmap($mod.$op_slow, x,y)
+        @inline vmap(::typeof($mod.$op_slow), x, y) = SIMDVec($op_fast(VBVec(x), VBVec(y)))
     end
 end
 
