@@ -20,7 +20,7 @@ const Vec64{N} = SIMD.Vec{N, Float64}
 
 """
     tol = tolerance(fun)
-Let `x::SIMD.Vec{N,T}` and `ref` be obtained by applying 
+Let `x::SIMD.Vec{N,T}` and `ref` be obtained by applying
 `fun` on each element of `x`. Now `fun(x)` may differ
 from `ref` by an amount of `tol(fun)*eps(T)*abs(res)`.
 `tol==1` except for a few functions, for which `tol==2`.
@@ -29,8 +29,8 @@ tolerance(op) = 1
 
 """
 
-`vmap(fun, x)` applies `fun` to each element of `x::SIMD.Vec` and returns 
-a `SIMD.Vec`. 
+`vmap(fun, x)` applies `fun` to each element of `x::SIMD.Vec` and returns
+a `SIMD.Vec`.
 
     a = vmap(fun, x)
 
@@ -58,7 +58,7 @@ Currently optimized implementations are provided by `SLEEFPirates.jl`.
 @inline vmap_binop(op, x::T, y::Vec{T}) where T = vec(map(yy->op(x,yy), values(y)))
 @inline values(x)=map(d->d.value, x.data)
 @inline vec(t::NTuple{N, <:SIMD.VecTypes}) where N = SIMD.Vec(t...)
-@inline vec(t::NTuple{N, T}) where {N, T<:Tuple{Vararg{<:SIMD.VecTypes}}} =
+@inline vec(t::NTuple{N, T}) where {N, VT<:SIMD.VecTypes, T<:Tuple{Vararg{VT}}} =
     map(x->SIMD.Vec(x...), tuple(zip(t...)...))
 
 """
@@ -85,7 +85,7 @@ end
     flag = is_fast(fun)
 Returns `true` if there is a specialization of `vmap` for `fun`,  `false` otherwise.
 """
-@inline function is_fast(f::F) where {F<:Function} 
+@inline function is_fast(f::F) where {F<:Function}
     V = SIMD.Vec{4,Float64}
     any(m.sig.parameters[2]==F for m in methods(vmap, Tuple{F, V})) && return true
     any(m.sig.parameters[2]==F for m in methods(vmap, Tuple{F, V, V}))
@@ -169,21 +169,21 @@ end
 for (mod, unops, fastop) in (
     (Base, unops_Base_SP, identity),
     (FM, unops_FM_SP, identity),
-    (FM, unops_FM_SP_slow, sym->Symbol(sym, :_fast)))    
+    (FM, unops_FM_SP_slow, sym->Symbol(sym, :_fast)))
 
     for op in unops
         op_fast = fastop(op)
         op_SP = getfield(SP, op)
         @eval begin
             @inline $mod.$op_fast(x::Vec32) = vmap($mod.$op_fast, x)
-            @inline $mod.$op_fast(x::Vec64) = vmap($mod.$op_fast, x) 
+            @inline $mod.$op_fast(x::Vec64) = vmap($mod.$op_fast, x)
             @inline vmap(::typeof($mod.$op_fast), x) = SIMDVec($op_SP(VBVec(x)))
         end
     end
 end
 
-# one input, two outputs 
-for (mod, op) in ((Base, :sincos), (FM, :sincos_fast)) 
+# one input, two outputs
+for (mod, op) in ((Base, :sincos), (FM, :sincos_fast))
     @eval begin
         @inline $mod.$op(x::Vec{<:Floats}) = vmap($mod.$op, x)
         @inline vmap(::typeof($mod.$op), x) = map(SIMDVec, SP.$op(VBVec(x)))
