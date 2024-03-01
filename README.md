@@ -2,15 +2,14 @@
 
 Fast vectorized mathematical functions for SIMD.jl , using SLEEFPirates.jl .
 
-[![CI](https://github.com/dubosipsl/SIMDFastMath/actions/workflows/CI.yml/badge.svg)](https://github.com/dubosipsl/SIMDFastMath/actions/workflows/CI.yml)
-[![Code Coverage](https://codecov.io/gh/dubosipsl/SIMDFastMath/branch/main/graph/badge.svg)](https://codecov.io/gh/dubosipsl/SIMDFastMath) 
-
+[![CI](https://github.com/ClimFlows/SIMDFastMath/actions/workflows/CI.yml/badge.svg)](https://github.com/ClimFlows/SIMDFastMath/actions/workflows/CI.yml)
+[![Code Coverage](https://codecov.io/gh/ClimFlows/SIMDFastMath/branch/main/graph/badge.svg)](https://codecov.io/gh/ClimFlows/SIMDFastMath)
 
 ## Installing
 
 This package is not yet registered. To install it :
 ```Julia
-] add https://github.com/dubosipsl/SIMDFastMath
+] add https://github.com/ClimFlows/SIMDFastMath
 ```
 
 ## Overview

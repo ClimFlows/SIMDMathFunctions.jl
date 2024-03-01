@@ -58,11 +58,8 @@ Currently optimized implementations are provided by `SLEEFPirates.jl`.
 @inline vmap_binop(op, x::T, y::Vec{T}) where T = vec(map(yy->op(x,yy), values(y)))
 @inline values(x)=map(d->d.value, x.data)
 @inline vec(t::NTuple{N, <:SIMD.VecTypes}) where N = SIMD.Vec(t...)
-@inline function vec(t::NTuple{N, Tuple{<:SIMD.VecTypes, <:SIMD.VecTypes}}) where N
-    a = map(ab->ab[1], t)
-    b = map(ab->ab[2], t)
-    return SIMD.Vec(a...), SIMD.Vec(b...)
-end
+@inline vec(t::NTuple{N, T}) where {N, T<:Tuple{Vararg{<:SIMD.VecTypes}}} =
+    map(x->SIMD.Vec(x...), tuple(zip(t...)...))
 
 """
     funs = fast_functions()
