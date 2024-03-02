@@ -44,7 +44,7 @@ y=randn(Float32, 1024*1024); x=similar(y);
 @benchmark exp!($x, $y, Val(16))
 @benchmark exp!($x, $y, Val(32))
 
-@btime is_fast(exp)
+is_fast(exp)
 unary_funs = fast_functions(1)
 binary_funs = fast_functions(2)
 ```
@@ -57,16 +57,25 @@ binary_funs = fast_functions(2)
 
 ```Julia
 using SIMD: Vec
-using SIMDFastMath: vmap
+import SIMDFastMath: vmap
 import SpecialFunctions: erf
 
 erf(x::Vec) = vmap(erf, x)
 erf(x::Vec, y::Vec) = vmap(erf, x, y)
 erf(x::Vec{N,T}, y::T) where {N,T} = vmap(erf, x, y)
+
+x = Vec(randn(Float32, 16)...)
+@benchmark erf($x)
 ```
 
 The default `vmap` method simply calls `erf` on each element of `x`. There is no performance benefit, but it allows generic code to use `erf`. If `erf_SIMD` is optimized for vector inputs, you can provide a specialized method for `vmap`:
 
 ```Julia
-SIMDFastMath.vmap(::typeof(erf), x) = erf_SIMD(x)
+using VectorizationBase: verf # vectorized implementation
+using SIMDFastMath: SIMDVec, VBVec # VectorizationBase <=> SIMD conversion
+
+erf_SIMD(x) = SIMDVec(verf(VBVec(x)))
+vmap(::typeof(erf), x) = erf_SIMD(x)
+
+@benchmark erf($x)
 ```
