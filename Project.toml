@@ -1,4 +1,4 @@
-name = "SIMDFastMath"
+name = "SIMDMathFunctions"
 uuid = "d22a7203-ad50-4fbc-abc4-d6ac724cca58"
 authors = ["Thomas Dubos <thomas.dubos@lmd.ipsl.fr> and contributors"]
 version = "0.1.0"

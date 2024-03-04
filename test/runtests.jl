@@ -1,4 +1,4 @@
-using SIMDFastMath:
+using SIMDMathFunctions:
     SIMD, tolerance, fast_functions, is_supported, is_fast, vmap
 using Test
 

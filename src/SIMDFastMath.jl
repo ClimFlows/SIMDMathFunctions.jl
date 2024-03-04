@@ -7,7 +7,7 @@ using vectorized implementations from SLEEFPirates.
 
 See: `is_supported`, `is_fast`, `fast_functions`, `vmap`, `tolerance`.
 """
-module SIMDFastMath
+module SIMDMathFunctions
 
 import SLEEFPirates as SP
 import Base.FastMath as FM

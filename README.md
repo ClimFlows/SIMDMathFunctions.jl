@@ -1,24 +1,24 @@
-# SIMDFastMath
+# SIMDMathFunctions
 
 Fast vectorized mathematical functions for SIMD.jl , using SLEEFPirates.jl .
 
-[![CI](https://github.com/ClimFlows/SIMDFastMath/actions/workflows/CI.yml/badge.svg)](https://github.com/ClimFlows/SIMDFastMath/actions/workflows/CI.yml)
-[![Code Coverage](https://codecov.io/gh/ClimFlows/SIMDFastMath/branch/main/graph/badge.svg)](https://codecov.io/gh/ClimFlows/SIMDFastMath)
+[![CI](https://github.com/ClimFlows/SIMDMathFunctions/actions/workflows/CI.yml/badge.svg)](https://github.com/ClimFlows/SIMDMathFunctions/actions/workflows/CI.yml)
+[![Code Coverage](https://codecov.io/gh/ClimFlows/SIMDMathFunctions/branch/main/graph/badge.svg)](https://codecov.io/gh/ClimFlows/SIMDMathFunctions)
 
 ## Installing
 
 This package is not yet registered. To install it :
 ```Julia
-] add https://github.com/ClimFlows/SIMDFastMath
+] add https://github.com/ClimFlows/SIMDMathFunctions
 ```
 
 ## Overview
 
-The primary goal of `SIMDFastMath` is to provide efficient methods for mathematical functions with `SIMD.Vec` arguments. Under the hood, optimized implementations provided by `SLEEFPirates.jl` are used. This allows explicitly vectorized code using `SIMD.jl` to benefit from fast vectorized math functions.
+The primary goal of `SIMDMathFunctions` is to provide efficient methods for mathematical functions with `SIMD.Vec` arguments. Under the hood, optimized implementations provided by `SLEEFPirates.jl` are used. This allows explicitly vectorized code using `SIMD.jl` to benefit from fast vectorized math functions.
 
 ```Julia
 using SIMD: VecRange
-using SIMDFastMath: is_supported, is_fast, fast_functions
+using SIMDMathFunctions: is_supported, is_fast, fast_functions
 using BenchmarkTools
 
 function exp!(xs::Vector{T}, ys::Vector{T}) where {T}
@@ -53,11 +53,11 @@ binary_funs = fast_functions(2)
 
 `fast_functions([ninputs])` returns a vector of functions benefitting from a fast implementation, restricted to those accepting `ninputs` input arguments if `ninputs` is provided.
 
-`SIMDFastMath` also provides a helper function `vmap` to vectorize not-yet-supported mathematical functions. For example :
+`SIMDMathFunctions` also provides a helper function `vmap` to vectorize not-yet-supported mathematical functions. For example :
 
 ```Julia
 using SIMD: Vec
-import SIMDFastMath: vmap
+import SIMDMathFunctions: vmap
 import SpecialFunctions: erf
 
 erf(x::Vec) = vmap(erf, x)
@@ -72,7 +72,7 @@ The default `vmap` method simply calls `erf` on each element of `x`. There is no
 
 ```Julia
 using VectorizationBase: verf # vectorized implementation
-using SIMDFastMath: SIMDVec, VBVec # VectorizationBase <=> SIMD conversion
+using SIMDMathFunctions: SIMDVec, VBVec # VectorizationBase <=> SIMD conversion
 
 erf_SIMD(x) = SIMDVec(verf(VBVec(x)))
 vmap(::typeof(erf), x) = erf_SIMD(x)
