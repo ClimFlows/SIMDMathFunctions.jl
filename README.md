@@ -2,14 +2,14 @@
 
 Fast vectorized mathematical functions for SIMD.jl , using SLEEFPirates.jl .
 
-[![CI](https://github.com/ClimFlows/SIMDMathFunctions/actions/workflows/CI.yml/badge.svg)](https://github.com/ClimFlows/SIMDMathFunctions/actions/workflows/CI.yml)
-[![Code Coverage](https://codecov.io/gh/ClimFlows/SIMDMathFunctions/branch/main/graph/badge.svg)](https://codecov.io/gh/ClimFlows/SIMDMathFunctions)
+[![CI](https://github.com/ClimFlows/SIMDMathFunctions.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/ClimFlows/SIMDMathFunctions.jl/actions/workflows/CI.yml)
+[![Code Coverage](https://codecov.io/gh/ClimFlows/SIMDMathFunctions.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/ClimFlows/SIMDMathFunctions)
 
 ## Installing
 
-This package is not yet registered. To install it :
+This package is registered. To install it :
 ```Julia
-] add https://github.com/ClimFlows/SIMDMathFunctions
+] add SIMDMathFunctions
 ```
 
 ## Overview
