@@ -21,8 +21,8 @@ relative_error(res, ref) = abs(res - ref) / abs(ref)
 
 @testset "Two-argument functions" begin
     for fun in sort(fast_functions(2), by = string)
-        @assert is_supported(fun)
-        @assert is_fast(fun)
+        @assert is_supported(fun) "$fun is not supported"
+        @assert is_fast(fun) "$fun has no fast implementation"
         @info "--- $(string(fun))"
         tol = tolerance(fun)
         for F in (Float32, Float64), N in (4, 8, 16, 32)
