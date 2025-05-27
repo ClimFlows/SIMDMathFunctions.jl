@@ -194,7 +194,7 @@ end
 binops = ((Base,:hypot,SP.hypot), (Base,:^,SP.pow), (FM,:pow_fast, SP.pow_fast))
 for (mod, op_slow, op_fast) in binops
     @eval begin
-        @inline $mod.$op_slow(x::Vec{T}, y::Vec{T}) where {T<:Floats} = vmap($mod.$op_slow, x,y)
+        @inline $mod.$op_slow(x::Vec{T, N}, y::Vec{T, N}) where {T<:Floats, N} = vmap($mod.$op_slow, x,y)
         @inline $mod.$op_slow(x::T, y::Vec{T}) where {T<:Floats} = vmap($mod.$op_slow, x,y)
         @inline $mod.$op_slow(x::Vec{T}, y::T) where {T<:Floats} = vmap($mod.$op_slow, x,y)
         @inline vmap(::typeof($mod.$op_slow), x, y) = SIMDVec($op_fast(VBVec(x), VBVec(y)))
